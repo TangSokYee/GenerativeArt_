@@ -1,0 +1,149 @@
+import peasy.test.*;
+import peasy.org.apache.commons.math.*;
+import peasy.*;
+import peasy.org.apache.commons.math.geometry.*;
+
+PeasyCam cam;
+ArrayList walkers;
+int maxSteps = 300;
+float _a, _b, _centx, _centy, _x, _y;
+int _num = 12;
+color _col;
+float _noiseoff;
+int _angle;
+
+
+
+void setup()
+{
+size(1500,800,P3D);
+smooth(); 
+colorMode(HSB);
+frameRate = random(10);
+walkers = new ArrayList();
+for(int i = 0; i < 20; i++)
+walkers.add(new Walker());
+
+cam = new PeasyCam(this, 0, 0, 0, 1500);
+cam.setMinimumDistance(50);
+cam.setMaximumDistance(1500);
+
+
+
+_centx = (width / 2);
+_centy = (height / 2);
+_noiseoff = random(10);
+
+_col = color(random(255), random(255), random(255));
+_angle = 1;
+
+
+
+
+
+ _noiseoff = _noiseoff + .01;
+ _a = 3.5;
+ _b = _a + (noise(_noiseoff) * 1) - 5;
+ 
+ _angle++;
+ if (_angle == 360) { _angle = 0; }
+ 
+ 
+}
+
+void draw() {
+background(0);
+
+for(int i = 0; i < walkers.size(); i++) {
+Walker w = (Walker) walkers.get(i);
+
+w.draw();
+}
+}
+
+class Walker {
+float[] x;
+float[] y;
+float[] z;
+float seed;
+//color[] c;
+int i;
+float maxX, minX, maxY, minY, maxZ, minZ;
+ PVector rot; 
+ int id;
+ float rate = 1.0;
+float speed = 0.01;
+ 
+Walker() {
+x = new float[1];
+y = new float[1];
+z = new float[1];
+seed = random(50);
+//c = new color[1];
+x[0] = 0;
+y[0] = 0;
+z[0] = 0;
+maxX = minX = maxY = minY = 0;
+minZ = maxZ = 0;
+//c[0] = color(196, 196, 196);
+i = 0;
+
+ rot = new PVector(random(-1,1),random(-1,1),random(-1,1));
+}
+ 
+void step() {
+x = append(x, x[i] + random(3) - 3);
+y = append(y, y[i] + random(3) - 3);
+z = append(z, z[i] + random(3) - 3);
+/*c = append(c, color(constrain(red(c[i]) + random(3) - 1.5, 128, 255),
+                  constrain(green(c[i]) + random(3) - 1.5, 128, 255),
+                  constrain(blue(c[i]) + random(3) - 1.5, 128, 255)));*/
+i++;
+if(x[i] < minX) minX = x[i];
+if(x[i] > maxX) maxX = x[i];  
+if(y[i] < minY) minY = y[i];
+if(y[i] > maxY) maxY = y[i];  
+if(z[i] < minZ) minZ = z[i];
+if(z[i] > maxZ) maxZ = z[i];
+if(i > maxSteps) {
+x = subset(x, 1);
+y = subset(y, 1);
+z = subset(z, 1);
+i--;
+}
+}
+ 
+ 
+void draw() {
+rotateX(-.5);
+rotateY(-.5);
+translate(0,0,20);
+noFill();
+stroke(_col, 30);
+strokeWeight(1);
+rot.add(
+              noise((id+frameCount)/rate)*speed,
+              noise((id+3.0+frameCount)/rate)*speed,
+              noise((id+4.0+frameCount)/rate)*speed
+      );
+      rotateX(rot.x);
+      rotateY(rot.y);
+      rotateZ(rot.z);
+beginShape();
+for (int i=0;i < 50; i++) {    
+_x = cos(_a * i + radians(_angle) + PI / 2) * _centx;  
+_y = cos(_b * i + radians(_angle)) * _centy;  
+curveVertex(_x, _y);
+
+}
+endShape();   
+
+
+}
+}
+
+void mousePressed() { 
+_noiseoff = random(50);
+_col = color(random(255), random(255), random(255));
+draw();
+}
